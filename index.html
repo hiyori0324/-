@@ -1,46 +1,210 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Mini Block Game</title>
+<meta charset="UTF-8">
+<title>Mini Tetris</title>
 <style>
+body{
+text-align:center;
+font-family:sans-serif;
+}
 canvas{
-border:2px solid black;
+border:3px solid black;
+background:#eee;
 }
 </style>
 </head>
+
 <body>
 
-<h2>Mini Block Game</h2>
-<canvas id="game" width="200" height="400"></canvas>
+<h2>Mini Tetris</h2>
+<p>← → 移動 / ↓ 落とす / ↑ 回転</p>
+<canvas id="game" width="240" height="400"></canvas>
 
 <script>
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let block = {x:90,y:0,size:20};
+const COLS = 12;
+const ROWS = 20;
+const SIZE = 20;
+
+let board = [];
+
+for(let y=0;y<ROWS;y++){
+board[y]=[];
+for(let x=0;x<COLS;x++){
+board[y][x]=0;
+}
+}
+
+const pieces = [
+[[1,1,1,1]],
+[[1,1],[1,1]],
+[[0,1,0],[1,1,1]],
+[[1,1,0],[0,1,1]],
+[[0,1,1],[1,1,0]]
+];
+
+let piece = randomPiece();
+let pos = {x:4,y:0};
+
+function randomPiece(){
+return pieces[Math.floor(Math.random()*pieces.length)];
+}
+
+function drawSquare(x,y){
+ctx.fillStyle="blue";
+ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);
+ctx.strokeRect(x*SIZE,y*SIZE,SIZE,SIZE);
+}
 
 function draw(){
-ctx.clearRect(0,0,200,400);
-ctx.fillRect(block.x,block.y,block.size,block.size);
-}
 
-function update(){
-block.y += 20;
-if(block.y > 380){
-block.y = 0;
-block.x = Math.floor(Math.random()*10)*20;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+for(let y=0;y<ROWS;y++){
+for(let x=0;x<COLS;x++){
+if(board[y][x]){
+drawSquare(x,y);
 }
 }
+}
 
-setInterval(()=>{
-update();
-draw();
-},500);
+for(let y=0;y<piece.length;y++){
+for(let x=0;x<piece[y].length;x++){
+if(piece[y][x]){
+drawSquare(pos.x+x,pos.y+y);
+}
+}
+}
 
-document.addEventListener("keydown",(e)=>{
-if(e.key=="ArrowLeft") block.x -=20;
-if(e.key=="ArrowRight") block.x +=20;
+}
+
+function collide(){
+
+for(let y=0;y<piece.length;y++){
+for(let x=0;x<piece[y].length;x++){
+
+if(piece[y][x]){
+
+let newX = pos.x + x;
+let newY = pos.y + y;
+
+if(newY>=ROWS || newX<0 || newX>=COLS || board[newY][newX]){
+return true;
+}
+
+}
+
+}
+}
+
+return false;
+}
+
+function merge(){
+
+for(let y=0;y<piece.length;y++){
+for(let x=0;x<piece[y].length;x++){
+
+if(piece[y][x]){
+board[pos.y+y][pos.x+x]=1;
+}
+
+}
+}
+
+}
+
+function rotate(){
+
+let newPiece=[];
+
+for(let x=0;x<piece[0].length;x++){
+newPiece[x]=[];
+
+for(let y=piece.length-1;y>=0;y--){
+newPiece[x].push(piece[y][x]);
+}
+}
+
+piece=newPiece;
+
+}
+
+function clearLines(){
+
+for(let y=ROWS-1;y>=0;y--){
+
+let full=true;
+
+for(let x=0;x<COLS;x++){
+if(!board[y][x]) full=false;
+}
+
+if(full){
+
+board.splice(y,1);
+board.unshift(new Array(COLS).fill(0));
+y++;
+
+}
+
+}
+
+}
+
+function drop(){
+
+pos.y++;
+
+if(collide()){
+
+pos.y--;
+merge();
+clearLines();
+
+piece=randomPiece();
+pos={x:4,y:0};
+
+}
+
+}
+
+document.addEventListener("keydown",e=>{
+
+if(e.key=="ArrowLeft"){
+pos.x--;
+if(collide()) pos.x++;
+}
+
+if(e.key=="ArrowRight"){
+pos.x++;
+if(collide()) pos.x--;
+}
+
+if(e.key=="ArrowDown"){
+drop();
+}
+
+if(e.key=="ArrowUp"){
+rotate();
+if(collide()) rotate();
+}
+
 });
+
+function game(){
+
+drop();
+draw();
+
+}
+
+setInterval(game,500);
+
 </script>
 
 </body>
