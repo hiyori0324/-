@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Mini Platform Game</title>
+<title>Mini Block Game</title>
 <style>
 canvas{
 border:2px solid black;
@@ -10,56 +10,37 @@ border:2px solid black;
 </head>
 <body>
 
-<canvas id="game" width="500" height="300"></canvas>
+<h2>Mini Block Game</h2>
+<canvas id="game" width="200" height="400"></canvas>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let player = {x:50,y:200,w:20,h:20,vy:0};
-
-let gravity = 0.6;
-let ground = 250;
-
-let keys = {};
-
-document.addEventListener("keydown",e=>keys[e.key]=true);
-document.addEventListener("keyup",e=>keys[e.key]=false);
-
-function update(){
-
-if(keys["ArrowRight"]) player.x +=3;
-if(keys["ArrowLeft"]) player.x -=3;
-
-if(keys[" "] && player.y>=ground-player.h){
-player.vy = -10;
-}
-
-player.vy += gravity;
-player.y += player.vy;
-
-if(player.y>ground-player.h){
-player.y = ground-player.h;
-player.vy = 0;
-}
-
-}
+let block = {x:90,y:0,size:20};
 
 function draw(){
-ctx.clearRect(0,0,500,300);
-
-ctx.fillRect(0,ground,500,50);
-
-ctx.fillRect(player.x,player.y,player.w,player.h);
+ctx.clearRect(0,0,200,400);
+ctx.fillRect(block.x,block.y,block.size,block.size);
 }
 
-function game(){
+function update(){
+block.y += 20;
+if(block.y > 380){
+block.y = 0;
+block.x = Math.floor(Math.random()*10)*20;
+}
+}
+
+setInterval(()=>{
 update();
 draw();
-requestAnimationFrame(game);
-}
+},500);
 
-game();
+document.addEventListener("keydown",(e)=>{
+if(e.key=="ArrowLeft") block.x -=20;
+if(e.key=="ArrowRight") block.x +=20;
+});
 </script>
 
 </body>
